@@ -1,0 +1,430 @@
+{% extends "frontend/new_base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block stylesheet %}
+<style type="text/css">
+	@keyframes loading1 {
+		40% {
+			background-position:
+				100% 0;
+		}
+		100% {
+			background-position:
+				100% 0;
+		}
+	  }
+</style>
+{% endblock %}
+{% block content %}
+
+		<div class="page-header">
+			<h3 class="page-title">
+			<span class="page-title-icon bg-gradient-brand text-white me-2">
+				<i class="bi bi-house"></i>
+			</span> {% trans 'Dashboard' %}
+			</h3>
+		</div>
+		<div class="row mb-5">
+			<div class="col-xl-7 mb-5 mb-xl-0">
+			<div class="card h-100">
+				<!-- <div class="card-header bg-white">
+				<h4 class="card-title">Customer Overview</h4>
+				</div> -->
+				<div class="card-body">
+				<div class="d-flex justify-content-between">
+					<div>
+					<h4 class="card-title">{% trans 'Activities' %}</h4>
+					</div>
+					<div>
+					<div class="dropdown dropdown-menu-end">
+						<button id="dropdownButton" class="btn btn-light-outline dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+							{% trans 'Today' %}
+						</button>
+						<ul class="dropdown-menu" id="dropdownMenu">
+						<li><a class="dropdown-item" href="#" data-period="today">{% trans 'Today' %}</a></li>
+						<li><a class="dropdown-item" href="#" data-period="weekly">{% trans 'This week' %}</a></li>
+						<li><a class="dropdown-item" href="#" data-period="monthly">{% trans 'This month' %}</a></li>
+						<li><a class="dropdown-item" href="#" data-period="yearly">{% trans 'This year' %}</a></li>
+						</ul>
+					</div>
+					</div>
+				</div>
+				<div class="card-flex" style="margin-top:65px">
+					<div class="card02 bg-green-light hover-scale" id="employee-card">
+						<div>
+							<img src="{% static 'frontend/assets/img/Icon1.png' %}" class="icn">
+						</div>
+						<div>
+							<p class="card-title mb-1 mt-3" id="completed-count">0</p>
+							<p class="card-text mb-1">{% trans 'Employee' %}</p>
+							<p class="card-text-small mb-1 text-info" id="completed-prev-percentage">+0% {% trans 'from yesterday' %}</p>
+						</div>
+					</div>
+					<div class="card02 bg-orange-light hover-scale" >
+						<div>
+							<img src="{% static 'frontend/assets/img/Icon3.png' %}" class="icn">
+						</div>
+						<div>
+							<p class="card-title mb-1 mt-3" id="inprogress-count">0</p>
+							<p class="card-text mb-1">{% trans 'Complaint' %}</p>
+							<p class="card-text-small mb-1 text-info" id="inprogress-prev-percentage">+0% {% trans 'from yesterday' %}</p>
+						</div>
+					</div>
+					<div style="cursor: pointer;" class="card02 bg-red-light hover-scale">
+						<div>
+							{% comment %} <img src="{% static 'backoffice/assets/img/Icon4.png' %}" class="icn"> {% endcomment %}
+							<i class="bi bi-pencil" style="color: #8d2e73; font-size: 24px;"></i>
+						</div>
+						<div>
+							<p class="card-title mb-1 mt-3" id="review-count">0</p>
+							<p class="card-text mb-1">{% trans 'New Complaint' %}</p>
+							<p class="card-text-small mb-1 text-info" id="review-prev-percentage">-0% {% trans 'from yesterday' %}</p>
+						</div>
+					</div>
+				</div>
+	
+				</div>
+			</div>
+
+			</div>
+			<div class="col-xl-5">
+				<div class="card h-100">
+					<!-- <div class="card-header bg-white">
+
+					<h4 class="card-title">Customer Overview</h4>
+					</div> -->
+					<div class="card-body">
+						<div class="d-flex justify-content-between">
+							<h4 class="card-title">{% trans 'Complaint Activity' %}</h4>
+							<div>
+								<div class="dropdown dropdown-menu-end">
+									<button id="dropdownButtonKnowIgl" class="btn btn-light-outline dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+										{% trans 'Today' %}
+									</button>
+									<ul class="dropdown-menu" id="dropdownMenuKnowIgl">
+										<li><a class="dropdown-item" href="#" data-period="today">{% trans 'Today' %}</a></li>
+										<li><a class="dropdown-item" href="#" data-period="weekly">{% trans 'This week' %}</a></li>
+										<li><a class="dropdown-item" href="#" data-period="monthly">{% trans 'This month' %}</a></li>
+										<li><a class="dropdown-item" href="#" data-period="yearly">{% trans 'This year' %}</a></li>
+									</ul>
+								</div>
+							</div>
+						</div>
+						<div class="d-flex h-100">
+							<div id="pieOne" style="width:500px; height:315px;"></div>
+						</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+		<div class="m-content">
+			{% if settings.FIREBASE_CONFIG and settings.FIREBASE_CONFIG.ENABLED %}
+				<div id="push-perm">
+				</div>
+			{% endif %}
+
+			<div class="row">
+			</div>
+		</div>
+
+{% endblock %}
+
+{% block javascript %}
+<script>
+</script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/no-data-to-display.js"></script>
+<script src="{% static 'frontend/assets/js/highchart.js' %}"></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/index.global.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.15/index.global.min.js'></script>
+<script>
+	function waitForIsAdminValue() {
+		return new Promise((resolve) => {
+			const intervalId = setInterval(() => {
+				const isAdminElement = document.getElementById('isAdminLabel');
+				if (isAdminElement && isAdminElement.value) {
+					clearInterval(intervalId);
+					resolve(isAdminElement.value);
+				}
+			}, 100); // Check every 100ms
+		});
+	}
+	document.addEventListener('DOMContentLoaded', async function() {
+		const message = localStorage.getItem('toastrErrorMessage');
+		localStorage.removeItem('toastrErrorMessage');
+		if (message) {
+		  toastr.warning("{% trans '" + message + "' %}");
+		}
+
+		function setDashboardData(dashBordData) {
+			if (dashBordData.hasOwnProperty('user')) {
+				if (dashBordData.user.hasOwnProperty('today')) {
+					if (document.getElementById('completed-count')) {
+						document.getElementById('completed-count').innerText = dashBordData.user.today
+					}
+				}
+				if (dashBordData.user.hasOwnProperty('change')) {
+					if (document.getElementById('completed-prev-percentage')) {
+						document.getElementById('completed-prev-percentage').innerText = dashBordData.user.change + ' ' + dashBordData.user.text
+					}
+				}
+			} else {
+				if (document.getElementById('employee-card')) {
+					document.getElementById('employee-card').style.display = 'none';
+				}
+
+			}
+			if (dashBordData.hasOwnProperty('complaint')) {
+				if (dashBordData.complaint.hasOwnProperty('today')) {
+					if (document.getElementById('inprogress-count')) {
+						document.getElementById('inprogress-count').innerText = dashBordData.complaint.today
+					}
+				}
+				if (dashBordData.complaint.hasOwnProperty('change')) {
+					if (document.getElementById('inprogress-prev-percentage')) {
+						document.getElementById('inprogress-prev-percentage').innerText = dashBordData.complaint.change + ' ' + dashBordData.complaint.text
+					}
+				}
+			}
+			if (dashBordData.hasOwnProperty('complaint_new')) {
+				if (dashBordData.complaint_new.hasOwnProperty('today')) {
+					if (document.getElementById('review-count')) {
+						document.getElementById('review-count').innerText = dashBordData.complaint_new.today
+					}
+				}
+				if (dashBordData.complaint_new.hasOwnProperty('change')) {
+					if (document.getElementById('review-prev-percentage')) {
+						document.getElementById('review-prev-percentage').innerText = dashBordData.complaint_new.change + ' ' + dashBordData.complaint_new.text
+					}
+				}
+			}
+		}
+
+		var searchParams = new URLSearchParams(new URL(window.location.href).search);
+		var know_igl_activity_filter = searchParams.get('know_igl_activity_filter');
+		var activity_filter = searchParams.get('activity_filter');
+		var loadUrl = serverUrl + getActivityUrl;
+		if (activity_filter) {
+			if (['today','weekly', 'monthly', 'yearly'].includes(activity_filter)) {
+				loadUrl = appendQueryParam(loadUrl, 'activity_filter', activity_filter);
+			}
+		}
+		callApi({
+			url: loadUrl,
+			method: 'GET',
+			success: function(response) {
+				if (response.status_code === 200) {
+					setDashboardData(response.data)
+				}
+			},
+			error: function(xhr, status, error) {
+				if (xhr.status === 401 || xhr.status === 403) {
+					toastr.error("Something went wrong please try again");
+			} else {
+			    toastr.error("Something went wrong please try again");
+			}
+			}
+		});
+		var loadKnowIglCountActivityUrl = serverUrl + getSourceUrl;
+		if (know_igl_activity_filter) {
+			if (['today','weekly', 'monthly', 'yearly'].includes(know_igl_activity_filter)) {
+				loadKnowIglCountActivityUrl = appendQueryParam(loadKnowIglCountActivityUrl, 'know_igl_activity_filter', know_igl_activity_filter);
+			}
+		}
+		callApi({
+			url: loadKnowIglCountActivityUrl,
+			method: 'GET',
+			success: function(response) {
+				if (response.status_code === 200) {
+					const responseData = response.data || {};
+					const hasPositiveValue = Object.values(responseData).some(value => value > 0);
+					if (hasPositiveValue) {
+						const seriesData = Object.entries(responseData).map(([key, value]) => [key, value]);
+						if (pieOneChartActivity) {
+							if (pieOneChartActivity.series.length === 0) {
+								pieOneChartActivity.addSeries({ data: seriesData });
+							} else {
+								pieOneChartActivity.series[0].setData(seriesData, true);
+							}
+						}
+					} else {
+						if (pieOneChartActivity) {
+							while (pieOneChartActivity.series.length > 0) {
+								pieOneChartActivity.series[0].remove(true);
+							}
+						}
+					}
+				}
+			},
+			error: function(xhr, status, error) {
+				if (xhr.status === 401 || xhr.status === 403) {
+					toastr.error("Something went wrong please try again");
+			} else {
+			toastr.error("Something went wrong please try again");
+			}
+			}
+		});
+
+		const initialKnowIglActivityFilter = getQueryParam('know_igl_activity_filter');
+		if (initialKnowIglActivityFilter) {
+			const dropdownButtonKnowIgl = document.getElementById('dropdownButtonKnowIgl');
+			filterDict = {
+				'today': 'Today',
+				'weekly': 'This week',
+				'monthly': 'This month',
+				'yearly': 'This year',
+			}
+			dropdownButtonKnowIgl.innerText = filterDict[initialKnowIglActivityFilter];
+		}
+
+		const initialActivityFilter = getQueryParam('activity_filter');
+		if (initialActivityFilter) {
+			const dropdownButton = document.getElementById('dropdownButton');
+			filterDict = {
+				'today': 'Today',
+				'weekly': 'This week',
+				'monthly': 'This month',
+				'yearly': 'This year'
+			}
+			dropdownButton.innerText = filterDict[initialActivityFilter];
+		}
+
+		function getQueryParam(key) {
+			const urlParams = new URLSearchParams(window.location.search);
+			const paramValue = urlParams.get(key);
+			if (key === 'activity_filter') {
+				if (paramValue && ['today','weekly', 'monthly', 'yearly'].includes(paramValue)) {
+					return paramValue;
+				}
+			}  else if (key === 'know_igl_activity_filter') {
+				if (paramValue && ['today','weekly', 'monthly', 'yearly'].includes(paramValue)) {
+					return paramValue;
+				}
+			} else {
+				if (paramValue) {
+					return paramValue;
+				}
+			}
+			return null;
+		}
+
+		function updateQueryParam(key, value) {
+			const url = new URL(window.location.href);
+			if (value) url.searchParams.set(key, value);
+			else url.searchParams.delete(key);
+			window.history.pushState({ path: url.href }, '', url.href);
+		}
+
+		function appendQueryParam(url, key, value) {
+			return url + '?' + key + '=' + value;
+		}
+
+		const dropdownMenu = document.getElementById('dropdownMenu');
+		if (dropdownMenu) {
+			dropdownMenu.addEventListener('click', function(event) {
+				if (event.target && event.target.matches('.dropdown-item')) {
+					event.preventDefault();
+					const period = event.target.getAttribute('data-period');
+					updateQueryParam('activity_filter', period);
+					var loadUrl = serverUrl + getActivityUrl
+					if (period) {
+						if (['today','weekly', 'monthly', 'yearly'].includes(period)) {
+							loadUrl = appendQueryParam(loadUrl, 'activity_filter', period);
+						}
+					}
+					callApi({
+						url: loadUrl,
+						method: 'GET',
+						success: function(response) {
+							if (response.status_code === 200) {
+								setDashboardData(response.data)
+							}
+						},
+						error: function(xhr, status, error) {
+							if (xhr.status === 401 || xhr.status === 403) {
+								toastr.error("Something went wrong please try again");
+							} else {
+								toastr.error("Something went wrong please try again");
+							}
+						}
+					});
+					const initialActivityFilter = getQueryParam('activity_filter');
+					if (initialActivityFilter) {
+						const dropdownButton = document.getElementById('dropdownButton');
+						filterDict = {
+							'today': 'Today',
+							'weekly': 'This week',
+							'monthly': 'This month',
+							'yearly': 'This year'
+						}
+						dropdownButton.innerText = filterDict[initialActivityFilter];
+					}
+				}
+			});
+		}
+
+		const dropdownMenuKnowIgl = document.getElementById('dropdownMenuKnowIgl');
+		if (dropdownMenuKnowIgl) {
+			dropdownMenuKnowIgl.addEventListener('click', function(event) {
+				if (event.target && event.target.matches('.dropdown-item')) {
+					event.preventDefault();
+					const perioKnowIgl = event.target.getAttribute('data-period');
+					updateQueryParam('know_igl_activity_filter', perioKnowIgl);
+					var loadKnowIglCountActivityUrl = serverUrl + getSourceUrl;
+					if (perioKnowIgl) {
+						if (['today','weekly', 'monthly', 'yearly'].includes(perioKnowIgl)) {
+							loadKnowIglCountActivityUrl = appendQueryParam(loadKnowIglCountActivityUrl, 'know_igl_activity_filter', perioKnowIgl);
+						}
+					}
+					callApi({
+						url: loadKnowIglCountActivityUrl,
+						method: 'GET',
+						success: function(response) {
+							if (response.status_code === 200) {
+								const responseData = response.data || {};
+						const hasPositiveValue = Object.values(responseData).some(value => value > 0);
+								if (hasPositiveValue) {
+									const seriesData = Object.entries(responseData).map(([key, value]) => [key, value]);
+									if (pieOneChartActivity) {
+										if (pieOneChartActivity.series.length === 0) {
+											pieOneChartActivity.addSeries({ data: seriesData });
+										} else {
+											pieOneChartActivity.series[0].setData(seriesData, true);
+										}
+									}
+								} else {
+									if (pieOneChartActivity) {
+										while (pieOneChartActivity.series.length > 0) {
+											pieOneChartActivity.series[0].remove(true);
+										}
+									}
+								}
+							}
+						},
+						error: function(xhr, status, error) {
+							if (xhr.status === 401 || xhr.status === 403) {
+								toastr.error("Something went wrong please try again");
+							} else {
+								toastr.error("Something went wrong please try again");
+							}
+						}
+					});
+					const initialKnowIglActivityFilter = getQueryParam('know_igl_activity_filter');
+					if (initialKnowIglActivityFilter) {
+						const dropdownButtonKnowIgl = document.getElementById('dropdownButtonKnowIgl');
+						filterDict = {
+							'today': 'Today',
+							'weekly': 'This week',
+							'monthly': 'This month',
+							'yearly': 'This year',
+						}
+						dropdownButtonKnowIgl.innerText = filterDict[initialKnowIglActivityFilter];
+					}
+				}
+			});
+		}
+		});
+</script>
+{% endblock %}
